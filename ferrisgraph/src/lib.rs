@@ -5,11 +5,13 @@ use std::rc::Rc;
 mod macros;
 pub use macros::*;
 
-struct Edge<N, E> {
-    src: N,
-    dst: N,
-    weight: E
-}
+// #[derive(PartialEq)]
+// struct Edge<N, E>
+// {
+//     src: N,
+//     dst: N,
+//     weight: E
+// }
 
 /// A directed, weighted graph implementation using Rust standard library containers.
 /// 
@@ -17,14 +19,16 @@ struct Edge<N, E> {
 pub struct Graph<N, E>
 where
     N: Hash + Eq,
+    E: Hash + Eq,
 {
     nodes: HashSet<Rc<N>>,
-    edges: HashMap<Rc<N>, HashSet<Edge<Rc<N>, E>>>
+    edges: HashMap<Rc<N>, HashSet<(Rc<N>, E)>>
 }
 
 impl<N, E> Graph<N, E>
 where
     N: Hash + Eq,
+    E: Hash + Eq
 {
     /// Creates an empty `Graph`.
     /// 
@@ -115,6 +119,41 @@ where
     /// ```
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
+    }
+
+    pub fn is_edge(&self, src: &N, dst: &N, weight: &E) -> bool {
+        if !self.is_node(src) || !self.is_node(dst) {
+            return false;
+        }
+
+        // let rc_src = self.nodes.get(src)
+        //                          .expect("We just verified src is a node");
+
+        let src_edges =  self.edges.get(src)
+                                                   .expect("We just verified src is a node.");
+
+        
+        src_edges.iter().any(|(rc_dst, w)| **rc_dst == *dst && *weight == *w)
+    }
+
+    pub fn add_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
+        if !self.is_node(src) || !self.is_node(dst) {
+            return false;
+        }
+
+        if self.is_edge(src, dst, &weight) {
+            return false;
+        }
+
+        let src_edges = self.edges.get_mut(src)
+                                                      .expect("We just verified src is a node.");
+
+        let rc_dst = self.nodes.get(dst)
+                                 .expect("We just verified that dst is a node.");
+
+        src_edges.insert((rc_dst.clone(), weight));
+        
+        true
     }
 
 }
