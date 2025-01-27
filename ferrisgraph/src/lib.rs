@@ -180,23 +180,24 @@ where
     }
 
     /// Removes a node from the graph, and thus all associated edges.
-    /// 
+    /// Returns true if successful, and false if the node already does not exist in the graph.
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
-    /// 
+    ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
     /// g.add_edge(&"Berlin", &"Munich", 100);
     /// g.add_edge(&"Frankfurt", &"Berlin", 100);
-    /// 
+    ///
     /// assert!(g.remove_node(&"Berlin"));
     /// assert_eq!(g.remove_node(&"Hamburg"), false);
-    /// 
+    ///
     /// assert_eq!(g.is_node(&"Berlin"), false);
     /// assert_eq!(g.is_edge(&"Berlin", &"Hamburg", &100), false);
     /// assert_eq!(g.is_edge(&"Frankfurt", &"Berlin", &100), false);
-    /// 
+    ///
     /// ```
     pub fn remove_node(&mut self, node: &N) -> bool {
         if !self.is_node(node) {
@@ -218,19 +219,57 @@ where
     }
 
     /// Returns the amount of nodes present in the graph.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use ferrisgraph::*;
-    /// 
+    ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Tokyo", "Osaka", "Sapporo");
-    /// 
+    ///
     /// assert_eq!(g.num_nodes(), 3);
     /// g.add_node("Fukuoka");
     /// assert_eq!(g.num_nodes(), 4);
-    /// 
+    ///
     /// ```
     pub fn num_nodes(&self) -> usize {
         self.nodes.len()
+    }
+
+    /// Removes a given edge from the graph.
+    /// Returns true if successful, and false if the edge already does not exist in the graph.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("New York", "Los Angeles", "Chicago");
+    /// 
+    /// g.add_edge(&"New York", &"Chicago", 100);
+    /// 
+    /// assert!(g.is_edge(&"New York", &"Chicago", &100));
+    /// assert!(g.remove_edge(&"New York", &"Chicago", 100));
+    /// 
+    /// assert_eq!(g.is_edge(&"New York", &"Chicago", &100), false);
+    /// assert_eq!(g.remove_edge(&"New York", &"Chicago", 100), false);
+    /// 
+    /// ```
+    pub fn remove_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
+        if !self.is_edge(src, dst, &weight) {
+            return false;
+        }
+
+        let src_edges = self
+            .edges
+            .get_mut(src)
+            .expect("We just verified the edge, and thus the src, exists.");
+        let dst_rc = self
+            .nodes
+            .get(dst)
+            .expect("We just verified the edge, and thus the dst, exists.");
+
+        src_edges.remove(&(dst_rc.clone(), weight));
+
+        true
     }
 }
