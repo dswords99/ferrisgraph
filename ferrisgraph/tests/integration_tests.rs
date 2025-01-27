@@ -43,3 +43,28 @@ fn test_edge_insertion() {
     assert_eq!(g.is_edge(&3, &4, &1000), false);
 
 }
+
+#[test]
+fn test_node_removal() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    g.add_edge(&1, &2, 0);
+    g.add_edge(&1, &3, 0);
+    g.add_edge(&3, &1, 0);
+    g.add_edge(&4, &1, 0);
+    g.add_edge(&3, &2, 0);
+
+    assert!(g.remove_node(&1));
+    assert_eq!(g.remove_node(&1), false);
+
+    assert_eq!(g.is_node(&1), false);
+
+    // Ensure edges were removed as expected
+    assert!(g.is_edge(&3, &2, &0));
+    assert_eq!(g.is_edge(&1, &2, &0), false);
+    assert_eq!(g.is_edge(&1, &3, &0), false);
+    assert_eq!(g.is_edge(&3, &1, &0), false);
+    assert_eq!(g.is_edge(&4, &1, &0), false);
+
+
+}

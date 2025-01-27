@@ -3,7 +3,6 @@ use std::hash::Hash;
 use std::rc::Rc;
 
 mod macros;
-pub use macros::*;
 
 // #[derive(PartialEq)]
 // struct Edge<N, E>
@@ -120,12 +119,12 @@ where
     }
 
     /// Returns `true` if a given edge is in the graph.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use ferrisgraph::*;
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
-    /// 
+    ///
     /// assert_eq!(g.is_edge(&"Berlin", &"Frankfurt", &1000), false);
     /// g.add_edge(&"Berlin", &"Frankfurt", 1000);
     /// assert!(g.is_edge(&"Berlin", &"Frankfurt", &1000));
@@ -147,12 +146,12 @@ where
 
     /// Adds an edge to the graph.
     /// Returns `true` if successful, and `false` if the edge already exists in the graph.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use ferrisgraph::*;
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
-    /// 
+    ///
     /// assert!(g.add_edge(&"Frankfurt", &"Munich", 300));
     /// assert_eq!(g.add_edge(&"Frankfurt", &"Munich", 300), false);
     /// ```
@@ -176,6 +175,44 @@ where
             .expect("We just verified that dst is a node.");
 
         src_edges.insert((rc_dst.clone(), weight));
+
+        true
+    }
+
+    /// Removes a node from the graph, and thus all associated edges.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    /// 
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
+    /// g.add_edge(&"Berlin", &"Munich", 100);
+    /// g.add_edge(&"Frankfurt", &"Berlin", 100);
+    /// 
+    /// assert!(g.remove_node(&"Berlin"));
+    /// assert_eq!(g.remove_node(&"Hamburg"), false);
+    /// 
+    /// assert_eq!(g.is_node(&"Berlin"), false);
+    /// assert_eq!(g.is_edge(&"Berlin", &"Hamburg", &100), false);
+    /// assert_eq!(g.is_edge(&"Frankfurt", &"Berlin", &100), false);
+    /// 
+    /// ```
+    pub fn remove_node(&mut self, node: &N) -> bool {
+        if !self.is_node(node) {
+            return false;
+        }
+
+        // Remove the HashSet associated with node (out-going edges)
+        self.edges.remove(node);
+
+        // Remove all edges in other HashSets associated with node (in-going edges)
+        self.edges
+            .iter_mut()
+            .for_each(|(_, set)| set.retain(|(dst, _)| **dst != *node));
+
+        // Remove the node itself
+        self.nodes.remove(node);
 
         true
     }
