@@ -14,7 +14,7 @@ pub use macros::*;
 // }
 
 /// A directed, weighted graph implementation using Rust standard library containers.
-/// 
+///
 /// It is required that the node type implements Hash, Eq
 pub struct Graph<N, E>
 where
@@ -22,18 +22,18 @@ where
     E: Hash + Eq,
 {
     nodes: HashSet<Rc<N>>,
-    edges: HashMap<Rc<N>, HashSet<(Rc<N>, E)>>
+    edges: HashMap<Rc<N>, HashSet<(Rc<N>, E)>>,
 }
 
 impl<N, E> Graph<N, E>
 where
     N: Hash + Eq,
-    E: Hash + Eq
+    E: Hash + Eq,
 {
     /// Creates an empty `Graph`.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::Graph;
     /// let mut g: Graph<String, i32> = Graph::new();
@@ -48,11 +48,11 @@ where
     /// Returns `true` if a node is in the graph.
     ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::Graph;
     /// let mut g: Graph<i32, i32> = Graph::new();
-    /// 
+    ///
     /// assert_eq!(g.is_node(&1), false);
     /// g.add_node(1);
     /// assert!(g.is_node(&1));
@@ -63,13 +63,13 @@ where
 
     /// Adds a node to the graph.
     /// Returns true if successful, and false if the node already exists in the graph.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     /// let mut g: Graph<String, i32> = Graph::new();
-    /// 
+    ///
     /// assert!(g.add_node("Sydney".to_string()));
     /// assert_eq!(g.add_node("Sydney".to_string()), false);
     /// ```
@@ -79,40 +79,38 @@ where
         }
 
         let new_node = Rc::new(node);
-        
+
         self.nodes.insert(Rc::clone(&new_node));
         self.edges.insert(Rc::clone(&new_node), HashSet::new());
         true
     }
 
-
-
     /// Returns a reference to the set of nodes in the graph.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     /// let mut g: Graph<i32, i32> = graph_with_nodes![1, 2, 3];
-    /// 
+    ///
     /// let nodes = g.nodes();
-    /// 
+    ///
     /// assert!(nodes.contains(&1));
     /// assert!(nodes.contains(&3));
     /// assert_eq!(nodes.contains(&42), false);
-    /// 
+    ///
     /// ```
     pub fn nodes(&self) -> &HashSet<Rc<N>> {
         &(self.nodes)
     }
 
     /// Returns true if the graph has no nodes (and thus, no edges).
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use ferrisgraph::*;
     /// let mut g: Graph<String, i32> = Graph::new();
-    /// 
+    ///
     /// assert!(g.is_empty());
     /// g.add_node("Sydney".to_string());
     /// assert_eq!(g.is_empty(), false);
@@ -126,14 +124,14 @@ where
             return false;
         }
 
-        // let rc_src = self.nodes.get(src)
-        //                          .expect("We just verified src is a node");
+        let src_edges = self
+            .edges
+            .get(src)
+            .expect("We just verified src is a node.");
 
-        let src_edges =  self.edges.get(src)
-                                                   .expect("We just verified src is a node.");
-
-        
-        src_edges.iter().any(|(rc_dst, w)| **rc_dst == *dst && *weight == *w)
+        src_edges
+            .iter()
+            .any(|(rc_dst, w)| **rc_dst == *dst && *weight == *w)
     }
 
     pub fn add_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
@@ -145,15 +143,18 @@ where
             return false;
         }
 
-        let src_edges = self.edges.get_mut(src)
-                                                      .expect("We just verified src is a node.");
+        let src_edges = self
+            .edges
+            .get_mut(src)
+            .expect("We just verified src is a node.");
 
-        let rc_dst = self.nodes.get(dst)
-                                 .expect("We just verified that dst is a node.");
+        let rc_dst = self
+            .nodes
+            .get(dst)
+            .expect("We just verified that dst is a node.");
 
         src_edges.insert((rc_dst.clone(), weight));
-        
+
         true
     }
-
 }
