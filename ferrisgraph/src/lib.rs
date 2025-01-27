@@ -216,4 +216,21 @@ where
 
         true
     }
+
+    /// Returns the amount of nodes present in the graph.
+    /// 
+    /// # Examples
+    /// ```
+    /// use ferrisgraph::*;
+    /// 
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Tokyo", "Osaka", "Sapporo");
+    /// 
+    /// assert_eq!(g.num_nodes(), 3);
+    /// g.add_node("Fukuoka");
+    /// assert_eq!(g.num_nodes(), 4);
+    /// 
+    /// ```
+    pub fn num_nodes(&self) -> usize {
+        self.nodes.len()
+    }
 }
