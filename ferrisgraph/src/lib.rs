@@ -45,7 +45,7 @@ where
         }
     }
 
-    /// Returns `true` if a node is in the graph.
+    /// Returns `true` if a given node is in the graph.
     ///
     /// # Examples
     ///
@@ -62,7 +62,7 @@ where
     }
 
     /// Adds a node to the graph.
-    /// Returns true if successful, and false if the node already exists in the graph.
+    /// Returns `true` if successful, and `false` if the node already exists in the graph.
     ///
     /// # Examples
     ///
@@ -104,7 +104,7 @@ where
         &(self.nodes)
     }
 
-    /// Returns true if the graph has no nodes (and thus, no edges).
+    /// Returns `true` if the graph has no nodes (and thus, no edges).
     ///
     /// # Examples
     /// ```
@@ -119,6 +119,17 @@ where
         self.nodes.is_empty()
     }
 
+    /// Returns `true` if a given edge is in the graph.
+    /// 
+    /// # Examples
+    /// ```
+    /// use ferrisgraph::*;
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
+    /// 
+    /// assert_eq!(g.is_edge(&"Berlin", &"Frankfurt", &1000), false);
+    /// g.add_edge(&"Berlin", &"Frankfurt", 1000);
+    /// assert!(g.is_edge(&"Berlin", &"Frankfurt", &1000));
+    /// ```
     pub fn is_edge(&self, src: &N, dst: &N, weight: &E) -> bool {
         if !self.is_node(src) || !self.is_node(dst) {
             return false;
@@ -134,6 +145,17 @@ where
             .any(|(rc_dst, w)| **rc_dst == *dst && *weight == *w)
     }
 
+    /// Adds an edge to the graph.
+    /// Returns `true` if successful, and `false` if the edge already exists in the graph.
+    /// 
+    /// # Examples
+    /// ```
+    /// use ferrisgraph::*;
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
+    /// 
+    /// assert!(g.add_edge(&"Frankfurt", &"Munich", 300));
+    /// assert_eq!(g.add_edge(&"Frankfurt", &"Munich", 300), false);
+    /// ```
     pub fn add_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
         if !self.is_node(src) || !self.is_node(dst) {
             return false;

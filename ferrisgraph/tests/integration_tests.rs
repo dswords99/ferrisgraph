@@ -30,3 +30,16 @@ fn test_nodes_method() {
 
     assert_eq!(**melb.unwrap(), "Melbourne");
 }
+
+#[test]
+fn test_edge_insertion() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    assert!(g.add_edge(&1, &2, 1000));
+    assert_eq!(g.add_edge(&1, &2, 1000), false);
+
+    assert!(g.is_edge(&1, &2, &1000));
+    assert_eq!(g.is_edge(&1, &2, &0), false);
+    assert_eq!(g.is_edge(&3, &4, &1000), false);
+
+}
