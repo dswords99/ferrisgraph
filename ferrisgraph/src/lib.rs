@@ -123,11 +123,11 @@ where
     /// # Examples
     /// ```
     /// use ferrisgraph::*;
-    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Seoul", "Busan", "Jeju");
     ///
-    /// assert_eq!(g.is_edge(&"Berlin", &"Frankfurt", &1000), false);
-    /// g.add_edge(&"Berlin", &"Frankfurt", 1000);
-    /// assert!(g.is_edge(&"Berlin", &"Frankfurt", &1000));
+    /// assert_eq!(g.is_edge(&"Seoul", &"Busan", &1000), false);
+    /// g.add_edge(&"Seoul", &"Busan", 1000);
+    /// assert!(g.is_edge(&"Seoul", &"Busan", &1000));
     /// ```
     pub fn is_edge(&self, src: &N, dst: &N, weight: &E) -> bool {
         if !self.is_node(src) || !self.is_node(dst) {
@@ -150,10 +150,10 @@ where
     /// # Examples
     /// ```
     /// use ferrisgraph::*;
-    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Taipei", "Kaohsiung", "Hualien");
     ///
-    /// assert!(g.add_edge(&"Frankfurt", &"Munich", 300));
-    /// assert_eq!(g.add_edge(&"Frankfurt", &"Munich", 300), false);
+    /// assert!(g.add_edge(&"Kaohsiung", &"Hualien", 300));
+    /// assert_eq!(g.add_edge(&"Kaohsiung", &"Hualien", 300), false);
     /// ```
     pub fn add_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
         if !self.is_node(src) || !self.is_node(dst) {
