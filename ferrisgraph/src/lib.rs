@@ -272,4 +272,38 @@ where
 
         true
     }
+
+
+    /// Returns a vector containing all the connections to the given node.
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Beijing", "Shanghai", "Guangzhou");
+    /// 
+    /// g.add_edge(&"Beijing", &"Shanghai", 100);
+    /// g.add_edge(&"Beijing", &"Guangzhou", 200);
+    /// 
+    /// let expected = vec![(&"Guangzhou", &200), (&"Shanghai", &100)];
+    /// let mut cons = g.connections(&"Beijing");
+    /// cons.sort();
+    /// 
+    /// assert_eq!(expected, cons);
+    /// assert_eq!(g.connections(&"Shanghai"), Vec::new());
+    /// 
+    /// ```
+    pub fn connections(&self, node: &N) -> Vec<(&N, &E)> {
+
+        let node_edges =  match self.edges.get(node) {
+            Some(set) => set,
+            None => return Vec::new(),
+        };
+
+        let mut vec = Vec::new();
+
+        node_edges.iter().for_each(|(n, e)| vec.push((&(**n), e)));
+
+        vec
+    }
 }

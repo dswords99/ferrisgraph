@@ -79,3 +79,20 @@ fn test_edge_removal() {
     assert!(g.is_edge(&1, &3, &0));
     assert_eq!(g.is_edge(&1, &2, &0), false);
 }
+
+#[test]
+fn test_connections() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    g.add_edge(&1, &2, 0);
+    g.add_edge(&1, &3, 100);
+    g.add_edge(&1, &5, 1001);
+
+    let expect = vec!((&2, &0), (&3, &100), (&5, &1001));
+    let mut cons = g.connections(&1);
+
+    // Order doesn't matter
+    cons.sort();
+
+    assert_eq!(expect, cons);
+}
