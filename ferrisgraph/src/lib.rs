@@ -311,19 +311,19 @@ where
 
     /// Returns an optional `Vec<&N>` containing all the outgoing connections from the given node.
     /// Returns None if there exist no outgoing connections from the node.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("London", "Glasgow", "Manchester");
     /// g.add_edge(&"London", &"Glasgow", None);
     /// g.add_edge(&"Manchester", &"London", Some(100));
-    /// 
+    ///
     /// let expected = vec![&"Glasgow"];
     /// let cons = g.connections(&"London").expect("We know that London has a connection.");
-    /// 
+    ///
     /// assert_eq!(expected, cons);
     /// ```
     pub fn connections(&self, node: &N) -> Option<Vec<&N>> {
@@ -365,5 +365,28 @@ where
         };
 
         src_edges.iter().any(|(n, _)| **n == *dst)
+    }
+
+    /// This function returns the number of edges that are currently in the graph.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Madrid", "Barcelona", "Malaga");
+    /// 
+    /// assert_eq!(g.num_edges(), 0);
+    /// g.add_edge(&"Madrid", &"Malaga", None);
+    /// assert_eq!(g.num_edges(), 1);
+    /// ```
+    pub fn num_edges(&self) -> usize {
+        let mut count = 0;
+
+        self.edges
+            .iter()
+            .for_each(|(_, n_edges)| count += n_edges.len());
+
+        count
     }
 }

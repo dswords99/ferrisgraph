@@ -133,3 +133,20 @@ fn test_connections() {
 
     assert_eq!(expect, cons);
 }
+
+#[test]
+fn test_num_edges() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    assert_eq!(g.num_edges(), 0);
+
+    g.add_edge(&1, &2, None);
+    g.add_edge(&1, &3, Some(100));
+
+    assert_eq!(g.num_edges(), 2);
+
+    g.add_edge(&1, &5, Some(1001));
+    g.add_edge(&4, &1, None);
+
+    assert_eq!(g.num_edges(), 4);
+}
