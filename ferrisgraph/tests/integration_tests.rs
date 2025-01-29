@@ -81,7 +81,7 @@ fn test_edge_removal() {
 }
 
 #[test]
-fn test_connections() {
+fn test_edges() {
     let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
 
     g.add_edge(&1, &2, 0);
@@ -89,7 +89,7 @@ fn test_connections() {
     g.add_edge(&1, &5, 1001);
 
     let expect = vec![(&2, &0), (&3, &100), (&5, &1001)];
-    let mut cons = g.connections(&1).expect("We know that this node exists.");
+    let mut cons = g.edges(&1).expect("We know that this node exists.");
 
     // Order doesn't matter
     cons.sort();

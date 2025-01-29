@@ -269,8 +269,8 @@ where
         true
     }
 
-    /// Returns an optional `Vec<(&N, &E)>` containing all the outgoing connections from the given node.
-    /// None is returned if there exist no connections from the node.
+    /// Returns an optional `Vec<(&N, &E)>` containing all the outgoing edges from the given node.
+    /// None is returned if there exist no edges from the node.
     /// # Examples
     ///
     /// ```
@@ -282,14 +282,14 @@ where
     /// g.add_edge(&"Beijing", &"Guangzhou", 200);
     ///
     /// let expected = vec![(&"Guangzhou", &200), (&"Shanghai", &100)];
-    /// let mut cons = g.connections(&"Beijing").expect("We know that Beijing is a node.");
+    /// let mut cons = g.edges(&"Beijing").expect("We know that Beijing is a node.");
     /// cons.sort();
     ///
     /// assert_eq!(expected, cons);
-    /// assert_eq!(g.connections(&"Shanghai"), None);
+    /// assert_eq!(g.edges(&"Shanghai"), None);
     ///
     /// ```
-    pub fn connections(&self, node: &N) -> Option<Vec<(&N, &E)>> {
+    pub fn edges(&self, node: &N) -> Option<Vec<(&N, &E)>> {
         let node_edges = match self.edges.get(node) {
             Some(set) => set,
             None => return None,
