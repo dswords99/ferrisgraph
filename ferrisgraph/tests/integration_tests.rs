@@ -150,3 +150,23 @@ fn test_num_edges() {
 
     assert_eq!(g.num_edges(), 4);
 }
+
+#[test]
+fn test_degree() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    assert_eq!(g.in_degree(&1), 0);
+    assert_eq!(g.out_degree(&1), 0);
+
+    g.add_edge(&1, &3, Some(100));
+    g.add_edge(&1, &5, Some(1001));
+    g.add_edge(&4, &1, None);
+
+    assert_eq!(g.in_degree(&1), 1);
+    assert_eq!(g.out_degree(&1), 2);
+    assert_eq!(g.in_degree(&4), 0);
+    assert_eq!(g.out_degree(&4), 1);
+
+    assert_eq!(g.degree(&1), 3);
+    assert_eq!(g.degree(&4), 1);
+}

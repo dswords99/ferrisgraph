@@ -16,7 +16,7 @@ mod macros;
 /// The data structure can be used as unweighted by making all weights None, or can be used
 /// as a mixed graph with both weighted and unweighted edges.
 ///
-/// It is required that the node type implements Hash, Eq
+/// It is required that the node type implements Hash, Eq.
 pub struct Graph<N, E>
 where
     N: Hash + Eq,
@@ -368,25 +368,110 @@ where
     }
 
     /// This function returns the number of edges that are currently in the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Madrid", "Barcelona", "Malaga");
+    ///
+    /// assert_eq!(g.num_edges(), 0);
+    /// g.add_edge(&"Madrid", &"Malaga", None);
+    /// assert_eq!(g.num_edges(), 1);
+    /// ```
+    pub fn num_edges(&self) -> usize {
+        self.edges
+            .iter()
+            .map(|(_, set)| set.len())
+            .sum()
+    }
+
+    /// This function returns the out-degree of the given node. That is, the number of outgoing edges.
     /// 
     /// # Examples
     /// 
     /// ```
     /// use ferrisgraph::*;
     ///
-    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Madrid", "Barcelona", "Malaga");
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Johannesburg", "Cape Town", "Durban");
     /// 
-    /// assert_eq!(g.num_edges(), 0);
-    /// g.add_edge(&"Madrid", &"Malaga", None);
-    /// assert_eq!(g.num_edges(), 1);
+    /// assert_eq!(g.out_degree(&"Johannesburg"), 0);
+    /// 
+    /// g.add_edge(&"Johannesburg", &"Cape Town", None);
+    /// assert_eq!(g.out_degree(&"Johannesburg"), 1);
+    /// 
+    /// g.add_edge(&"Johannesburg", &"Durban", Some(100));
+    /// assert_eq!(g.out_degree(&"Johannesburg"), 2);
+    /// 
+    /// g.add_edge(&"Cape Town", &"Johannesburg", Some(1000));
+    /// assert_eq!(g.out_degree(&"Johannesburg"), 2);
     /// ```
-    pub fn num_edges(&self) -> usize {
-        let mut count = 0;
+    pub fn out_degree(&self, node: &N) -> usize {
+        let node_edges = match self.edges.get(node) {
+            Some(set) => set,
+            None => return 0,
+        };
+
+        node_edges.len()
+    }
+
+    /// This function returns the in-degree of the given node. That is, the number of incoming edges.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Rio de Janeiro", "Sao Paulo", "Brasilia");
+    /// 
+    /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 0);
+    /// 
+    /// g.add_edge(&"Rio de Janeiro", &"Sao Paulo", None);
+    /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 0);
+    /// 
+    /// g.add_edge(&"Brasilia", &"Rio de Janeiro", Some(100));
+    /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 1);
+    /// 
+    /// g.add_edge(&"Sao Paulo", &"Rio de Janeiro", Some(1000));
+    /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 2);
+    /// ```
+    pub fn in_degree(&self, node: &N) -> usize {
+        if !self.is_node(node) {
+            return 0;
+        }
 
         self.edges
             .iter()
-            .for_each(|(_, n_edges)| count += n_edges.len());
+            .flat_map(|(_, set)| set.iter())
+            .filter(|(dst, _)| **dst == *node)
+            .count()
+    }
 
-        count
+    /// This function returns the degree of the given node. That is, the number of edges connected to the node, incoming or outgoing.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Toronto", "Vancouver", "Montreal");
+    /// 
+    /// assert_eq!(g.degree(&"Toronto"), 0);
+    /// 
+    /// g.add_edge(&"Toronto", &"Vancouver", None);
+    /// assert_eq!(g.degree(&"Toronto"), 1);
+    /// 
+    /// g.add_edge(&"Montreal", &"Toronto", Some(100));
+    /// assert_eq!(g.degree(&"Toronto"), 2);
+    /// 
+    /// g.add_edge(&"Vancouver", &"Toronto", Some(1000));
+    /// 
+    /// assert_eq!(g.degree(&"Toronto"), 3);
+    /// assert_eq!(g.degree(&"Vancouver"), 2);
+    /// assert_eq!(g.degree(&"Montreal"), 1);
+    /// ```
+    pub fn degree(&self, node: &N) -> usize {
+        self.in_degree(node) + self.out_degree(node)
     }
 }
