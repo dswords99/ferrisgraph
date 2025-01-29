@@ -12,7 +12,9 @@ mod macros;
 //     weight: E
 // }
 
-/// A directed, weighted graph implementation using Rust standard library containers.
+/// A directed, weighted multi-graph implementation using Rust standard library containers.
+/// The data structure can be used as unweighted by making all weights None, or can be used
+/// as a mixed graph with both weighted and unweighted edges.
 ///
 /// It is required that the node type implements Hash, Eq
 pub struct Graph<N, E>
@@ -21,7 +23,7 @@ where
     E: Hash + Eq,
 {
     nodes: HashSet<Rc<N>>,
-    edges: HashMap<Rc<N>, HashSet<(Rc<N>, E)>>,
+    edges: HashMap<Rc<N>, HashSet<(Rc<N>, Option<E>)>>,
 }
 
 impl<N, E> Graph<N, E>
@@ -125,11 +127,11 @@ where
     /// use ferrisgraph::*;
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Seoul", "Busan", "Jeju");
     ///
-    /// assert_eq!(g.is_edge(&"Seoul", &"Busan", &1000), false);
-    /// g.add_edge(&"Seoul", &"Busan", 1000);
-    /// assert!(g.is_edge(&"Seoul", &"Busan", &1000));
+    /// assert_eq!(g.is_edge(&"Seoul", &"Busan", &Some(1000)), false);
+    /// g.add_edge(&"Seoul", &"Busan", Some(1000));
+    /// assert!(g.is_edge(&"Seoul", &"Busan", &Some(1000)));
     /// ```
-    pub fn is_edge(&self, src: &N, dst: &N, weight: &E) -> bool {
+    pub fn is_edge(&self, src: &N, dst: &N, weight: &Option<E>) -> bool {
         if !self.is_node(dst) {
             return false;
         }
@@ -152,10 +154,11 @@ where
     /// use ferrisgraph::*;
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Taipei", "Kaohsiung", "Hualien");
     ///
-    /// assert!(g.add_edge(&"Kaohsiung", &"Hualien", 300));
-    /// assert_eq!(g.add_edge(&"Kaohsiung", &"Hualien", 300), false);
+    /// assert!(g.add_edge(&"Kaohsiung", &"Hualien", Some(300)));
+    /// assert!(g.add_edge(&"Taipei", &"Hualien", None));
+    /// assert_eq!(g.add_edge(&"Kaohsiung", &"Hualien", Some(300)), false);
     /// ```
-    pub fn add_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
+    pub fn add_edge(&mut self, src: &N, dst: &N, weight: Option<E>) -> bool {
         if self.is_edge(src, dst, &weight) {
             return false;
         }
@@ -184,15 +187,15 @@ where
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Frankfurt", "Munich");
-    /// g.add_edge(&"Berlin", &"Munich", 100);
-    /// g.add_edge(&"Frankfurt", &"Berlin", 100);
+    /// g.add_edge(&"Berlin", &"Munich", Some(100));
+    /// g.add_edge(&"Frankfurt", &"Berlin", Some(100));
     ///
     /// assert!(g.remove_node(&"Berlin"));
     /// assert_eq!(g.remove_node(&"Hamburg"), false);
     ///
     /// assert_eq!(g.is_node(&"Berlin"), false);
-    /// assert_eq!(g.is_edge(&"Berlin", &"Hamburg", &100), false);
-    /// assert_eq!(g.is_edge(&"Frankfurt", &"Berlin", &100), false);
+    /// assert_eq!(g.is_edge(&"Berlin", &"Hamburg", &Some(100)), false);
+    /// assert_eq!(g.is_edge(&"Frankfurt", &"Berlin", &Some(100)), false);
     ///
     /// ```
     pub fn remove_node(&mut self, node: &N) -> bool {
@@ -241,16 +244,16 @@ where
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("New York", "Los Angeles", "Chicago");
     ///
-    /// g.add_edge(&"New York", &"Chicago", 100);
+    /// g.add_edge(&"New York", &"Chicago", Some(100));
     ///
-    /// assert!(g.is_edge(&"New York", &"Chicago", &100));
-    /// assert!(g.remove_edge(&"New York", &"Chicago", 100));
+    /// assert!(g.is_edge(&"New York", &"Chicago", &Some(100)));
+    /// assert!(g.remove_edge(&"New York", &"Chicago", Some(100)));
     ///
-    /// assert_eq!(g.is_edge(&"New York", &"Chicago", &100), false);
-    /// assert_eq!(g.remove_edge(&"New York", &"Chicago", 100), false);
+    /// assert_eq!(g.is_edge(&"New York", &"Chicago", &Some(100)), false);
+    /// assert_eq!(g.remove_edge(&"New York", &"Chicago", Some(100)), false);
     ///
     /// ```
-    pub fn remove_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
+    pub fn remove_edge(&mut self, src: &N, dst: &N, weight: Option<E>) -> bool {
         if !self.is_edge(src, dst, &weight) {
             return false;
         }
@@ -278,18 +281,18 @@ where
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Beijing", "Shanghai", "Guangzhou");
     ///
-    /// g.add_edge(&"Beijing", &"Shanghai", 100);
-    /// g.add_edge(&"Beijing", &"Guangzhou", 200);
+    /// g.add_edge(&"Beijing", &"Shanghai", Some(100));
+    /// g.add_edge(&"Beijing", &"Guangzhou", Some(200));
     ///
-    /// let expected = vec![(&"Guangzhou", &200), (&"Shanghai", &100)];
-    /// let mut cons = g.edges(&"Beijing").expect("We know that Beijing is a node.");
+    /// let expected = vec![(&"Guangzhou", &Some(200)), (&"Shanghai", &Some(100))];
+    /// let mut cons = g.edges(&"Beijing").expect("We know that Beijing has connections.");
     /// cons.sort();
     ///
     /// assert_eq!(expected, cons);
     /// assert_eq!(g.edges(&"Shanghai"), None);
     ///
     /// ```
-    pub fn edges(&self, node: &N) -> Option<Vec<(&N, &E)>> {
+    pub fn edges(&self, node: &N) -> Option<Vec<(&N, &Option<E>)>> {
         let node_edges = match self.edges.get(node) {
             Some(set) => set,
             None => return None,
@@ -306,6 +309,40 @@ where
         Some(vec)
     }
 
+    /// Returns an optional `Vec<&N>` containing all the outgoing connections from the given node.
+    /// Returns None if there exist no outgoing connections from the node.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("London", "Glasgow", "Manchester");
+    /// g.add_edge(&"London", &"Glasgow", None);
+    /// g.add_edge(&"Manchester", &"London", Some(100));
+    /// 
+    /// let expected = vec![&"Glasgow"];
+    /// let cons = g.connections(&"London").expect("We know that London has a connection.");
+    /// 
+    /// assert_eq!(expected, cons);
+    /// ```
+    pub fn connections(&self, node: &N) -> Option<Vec<&N>> {
+        let node_edges = match self.edges.get(node) {
+            Some(set) => set,
+            None => return None,
+        };
+
+        if node_edges.is_empty() {
+            return None;
+        };
+
+        let mut vec = Vec::new();
+
+        node_edges.iter().for_each(|(n, _)| vec.push(&(**n)));
+
+        Some(vec)
+    }
+
     /// Returns `true` if an edge exists between the source and destination, and `false` if not.
     ///
     /// # Examples
@@ -315,7 +352,7 @@ where
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("New Delhi", "Mumbai", "Bengaluru");
     ///
-    /// g.add_edge(&"Mumbai", &"Bengaluru", 100);
+    /// g.add_edge(&"Mumbai", &"Bengaluru", Some(100));
     ///
     /// assert!(g.is_connected(&"Mumbai", &"Bengaluru"));
     /// assert_eq!(g.is_connected(&"New Delhi", &"Bengaluru"), false);
