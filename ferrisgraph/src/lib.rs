@@ -130,14 +130,14 @@ where
     /// assert!(g.is_edge(&"Seoul", &"Busan", &1000));
     /// ```
     pub fn is_edge(&self, src: &N, dst: &N, weight: &E) -> bool {
-        if !self.is_node(src) || !self.is_node(dst) {
+        if !self.is_node(dst) {
             return false;
         }
 
-        let src_edges = self
-            .edges
-            .get(src)
-            .expect("We just verified src is a node.");
+        let src_edges = match self.edges.get(src) {
+            Some(set) => set,
+            None => return false,
+        };
 
         src_edges
             .iter()
@@ -156,23 +156,19 @@ where
     /// assert_eq!(g.add_edge(&"Kaohsiung", &"Hualien", 300), false);
     /// ```
     pub fn add_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
-        if !self.is_node(src) || !self.is_node(dst) {
-            return false;
-        }
-
         if self.is_edge(src, dst, &weight) {
             return false;
         }
 
-        let src_edges = self
-            .edges
-            .get_mut(src)
-            .expect("We just verified src is a node.");
+        let src_edges = match self.edges.get_mut(src) {
+            Some(set) => set,
+            None => return false,
+        };
 
-        let rc_dst = self
-            .nodes
-            .get(dst)
-            .expect("We just verified that dst is a node.");
+        let rc_dst = match self.nodes.get(dst) {
+            Some(rc) => rc,
+            None => return false,
+        };
 
         src_edges.insert((rc_dst.clone(), weight));
 
@@ -237,22 +233,22 @@ where
 
     /// Removes a given edge from the graph.
     /// Returns `true` if successful, and `false` if the edge already does not exist in the graph.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("New York", "Los Angeles", "Chicago");
-    /// 
+    ///
     /// g.add_edge(&"New York", &"Chicago", 100);
-    /// 
+    ///
     /// assert!(g.is_edge(&"New York", &"Chicago", &100));
     /// assert!(g.remove_edge(&"New York", &"Chicago", 100));
-    /// 
+    ///
     /// assert_eq!(g.is_edge(&"New York", &"Chicago", &100), false);
     /// assert_eq!(g.remove_edge(&"New York", &"Chicago", 100), false);
-    /// 
+    ///
     /// ```
     pub fn remove_edge(&mut self, src: &N, dst: &N, weight: E) -> bool {
         if !self.is_edge(src, dst, &weight) {
@@ -273,36 +269,34 @@ where
         true
     }
 
-
     /// Returns an optional `Vec<(&N, &E)>` containing all the outgoing connections from the given node.
     /// None is returned if there exist no connections from the node.
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Beijing", "Shanghai", "Guangzhou");
-    /// 
+    ///
     /// g.add_edge(&"Beijing", &"Shanghai", 100);
     /// g.add_edge(&"Beijing", &"Guangzhou", 200);
-    /// 
+    ///
     /// let expected = vec![(&"Guangzhou", &200), (&"Shanghai", &100)];
     /// let mut cons = g.connections(&"Beijing").expect("We know that Beijing is a node.");
     /// cons.sort();
-    /// 
+    ///
     /// assert_eq!(expected, cons);
     /// assert_eq!(g.connections(&"Shanghai"), None);
-    /// 
+    ///
     /// ```
     pub fn connections(&self, node: &N) -> Option<Vec<(&N, &E)>> {
-
-        let node_edges =  match self.edges.get(node) {
+        let node_edges = match self.edges.get(node) {
             Some(set) => set,
             None => return None,
         };
 
         if node_edges.is_empty() {
-            return None
+            return None;
         };
 
         let mut vec = Vec::new();
@@ -313,22 +307,21 @@ where
     }
 
     /// Returns `true` if an edge exists between the source and destination, and `false` if not.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("New Delhi", "Mumbai", "Bengaluru");
-    /// 
+    ///
     /// g.add_edge(&"Mumbai", &"Bengaluru", 100);
-    /// 
+    ///
     /// assert!(g.is_connected(&"Mumbai", &"Bengaluru"));
     /// assert_eq!(g.is_connected(&"New Delhi", &"Bengaluru"), false);
     /// assert_eq!(g.is_connected(&"Bengaluru", &"Mumbai", ), false);
     /// ```
     pub fn is_connected(&self, src: &N, dst: &N) -> bool {
-
         let src_edges = match self.edges.get(src) {
             Some(set) => set,
             None => return false,

@@ -88,7 +88,7 @@ fn test_connections() {
     g.add_edge(&1, &3, 100);
     g.add_edge(&1, &5, 1001);
 
-    let expect = vec!((&2, &0), (&3, &100), (&5, &1001));
+    let expect = vec![(&2, &0), (&3, &100), (&5, &1001)];
     let mut cons = g.connections(&1).expect("We know that this node exists.");
 
     // Order doesn't matter
