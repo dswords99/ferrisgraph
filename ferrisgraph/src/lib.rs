@@ -1,16 +1,10 @@
 use std::collections::{HashMap, HashSet};
+use std::fmt::Debug;
 use std::hash::Hash;
 use std::rc::Rc;
+use thiserror::Error;
 
 mod macros;
-
-// #[derive(PartialEq)]
-// struct Edge<N, E>
-// {
-//     src: N,
-//     dst: N,
-//     weight: E
-// }
 
 /// A directed, weighted multi-graph implementation using Rust standard library containers.
 /// The data structure can be used as unweighted by making all weights None, or can be used
@@ -26,9 +20,18 @@ where
     edges: HashMap<Rc<N>, HashSet<(Rc<N>, Option<E>)>>,
 }
 
+#[derive(Debug, Error, PartialEq)]
+pub enum GraphError<'a, N>
+where
+    N: Debug
+{
+    #[error("Node {:?} does not exist.", _0)]
+    NodeNotFound(&'a N)
+}
+
 impl<N, E> Graph<N, E>
 where
-    N: Hash + Eq,
+    N: Hash + Eq + Debug,
     E: Hash + Eq,
 {
     /// Creates an empty `Graph`.
