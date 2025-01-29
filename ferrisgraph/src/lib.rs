@@ -180,7 +180,7 @@ where
     }
 
     /// Removes a node from the graph, and thus all associated edges.
-    /// Returns true if successful, and false if the node already does not exist in the graph.
+    /// Returns `true` if successful, and `false` if the node already does not exist in the graph.
     ///
     /// # Examples
     ///
@@ -236,7 +236,7 @@ where
     }
 
     /// Removes a given edge from the graph.
-    /// Returns true if successful, and false if the edge already does not exist in the graph.
+    /// Returns `true` if successful, and `false` if the edge already does not exist in the graph.
     /// 
     /// # Examples
     /// 
@@ -274,7 +274,8 @@ where
     }
 
 
-    /// Returns a vector containing all the connections to the given node.
+    /// Returns an optional `Vec<(&N, &E)>` containing all the outgoing connections from the given node.
+    /// None is returned if there exist no connections from the node.
     /// # Examples
     /// 
     /// ```
@@ -311,5 +312,28 @@ where
         Some(vec)
     }
 
-    // pub fn is_connected()
+    /// Returns `true` if an edge exists between the source and destination, and `false` if not.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("New Delhi", "Mumbai", "Bengaluru");
+    /// 
+    /// g.add_edge(&"Mumbai", &"Bengaluru", 100);
+    /// 
+    /// assert!(g.is_connected(&"Mumbai", &"Bengaluru"));
+    /// assert_eq!(g.is_connected(&"New Delhi", &"Bengaluru"), false);
+    /// assert_eq!(g.is_connected(&"Bengaluru", &"Mumbai", ), false);
+    /// ```
+    pub fn is_connected(&self, src: &N, dst: &N) -> bool {
+
+        let src_edges = match self.edges.get(src) {
+            Some(set) => set,
+            None => return false,
+        };
+
+        src_edges.iter().any(|(n, _)| **n == *dst)
+    }
 }

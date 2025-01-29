@@ -96,3 +96,22 @@ fn test_connections() {
 
     assert_eq!(expect, cons);
 }
+
+#[test]
+fn test_is_connected() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    assert_eq!(g.is_connected(&1, &2), false);
+    assert_eq!(g.is_connected(&1, &3), false);
+
+    g.add_edge(&1, &2, 0);
+    g.add_edge(&1, &3, 10);
+
+    assert!(g.is_connected(&1, &2));
+    assert!(g.is_connected(&1, &3));
+    assert_eq!(g.is_connected(&1, &5), false);
+
+    g.remove_edge(&1, &2, 0);
+
+    assert_eq!(g.is_connected(&1, &2), false);
+}
