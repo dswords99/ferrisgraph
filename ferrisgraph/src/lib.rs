@@ -286,24 +286,30 @@ where
     /// g.add_edge(&"Beijing", &"Guangzhou", 200);
     /// 
     /// let expected = vec![(&"Guangzhou", &200), (&"Shanghai", &100)];
-    /// let mut cons = g.connections(&"Beijing");
+    /// let mut cons = g.connections(&"Beijing").expect("We know that Beijing is a node.");
     /// cons.sort();
     /// 
     /// assert_eq!(expected, cons);
-    /// assert_eq!(g.connections(&"Shanghai"), Vec::new());
+    /// assert_eq!(g.connections(&"Shanghai"), None);
     /// 
     /// ```
-    pub fn connections(&self, node: &N) -> Vec<(&N, &E)> {
+    pub fn connections(&self, node: &N) -> Option<Vec<(&N, &E)>> {
 
         let node_edges =  match self.edges.get(node) {
             Some(set) => set,
-            None => return Vec::new(),
+            None => return None,
+        };
+
+        if node_edges.is_empty() {
+            return None
         };
 
         let mut vec = Vec::new();
 
         node_edges.iter().for_each(|(n, e)| vec.push((&(**n), e)));
 
-        vec
+        Some(vec)
     }
+
+    // pub fn is_connected()
 }
