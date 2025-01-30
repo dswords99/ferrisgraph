@@ -209,10 +209,10 @@ where
             return false;
         }
 
-        // Remove the HashSet associated with node (out-going edges)
+        // Remove the BTreeSet associated with node (out-going edges)
         self.edges.remove(node);
 
-        // Remove all edges in other HashSets associated with node (in-going edges)
+        // Remove all edges in other BTreeSets associated with node (in-going edges)
         self.edges
             .iter_mut()
             .for_each(|(_, set)| set.retain(|(dst, _)| **dst != *node));
@@ -506,13 +506,13 @@ where
     ///
     /// ```
     pub fn bfs<'a>(&'a self, src: &'a N) -> Result<HashMap<&'a N, &'a N>, GraphError<'a, N>> {
-        let mut q = VecDeque::new();
-        let mut pred = HashMap::new();
-
         let src_rc = match self.nodes.get(src) {
             Some(rc) => rc,
             None => return Err(GraphError::NodeNotFound(src)),
         };
+
+        let mut q = VecDeque::new();
+        let mut pred = HashMap::new();
 
         pred.insert(&**src_rc, &**src_rc);
 
@@ -538,6 +538,64 @@ where
         }
 
         Ok(pred)
+    }
+
+    /// This function performs Depth First Search on the graph from the specified source.
+    /// A visited set is returned on success, whereas a `GraphError::NodeNotFound` is returned
+    /// if the source doesn't exist.
+    /// 
+    /// This function can be used for things such as finding 'islands' or if there exists a path
+    /// between two nodes.
+    /// 
+    /// # Examples
+    /// ```
+    /// use ferrisgraph::*;
+    /// use std::collections::BTreeSet;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Paris", "London", "Milan", "Zurich");
+    /// g.add_edge(&"Berlin", &"Paris", None);
+    /// g.add_edge(&"Berlin", &"Zurich", None);
+    /// g.add_edge(&"Paris", &"London", None);
+    ///
+    /// let res = g.dfs(&"Berlin");
+    /// assert!(res.is_ok());
+    ///
+    /// let visited = res.unwrap();
+    /// let expected: BTreeSet<&&str> = vec![&"Berlin", &"Paris", &"Zurich", &"London"].into_iter().collect();
+    /// 
+    /// assert_eq!(visited.len(), 4);
+    /// assert_eq!(visited, expected);
+    /// 
+    /// ```
+    /// 
+    pub fn dfs<'a>(&'a self, src: &'a N) -> Result<BTreeSet<&'a N>, GraphError<'a, N>> {
+        let mut stack = Vec::new();
+        let mut visited = BTreeSet::new();
+
+        stack.push(src);
+
+        loop {
+            let curr = match stack.pop() {
+                Some(n) => n,
+                None => break,
+            };
+
+            let curr_edges = match self.edges.get(curr) {
+                Some(set) => set,
+                None => return Err(GraphError::NodeNotFound(curr)),
+            };
+
+            visited.insert(curr);
+
+            for (dst, _) in curr_edges {
+                if !visited.contains(&**dst) {
+                    stack.push(&**dst);
+                }
+            }
+        }
+
+        Ok(visited)
+        
     }
 }
 

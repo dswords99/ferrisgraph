@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use ferrisgraph::{graph_with_nodes, Graph};
 
 #[test]
@@ -273,4 +275,39 @@ fn test_clone() {
     new_g = g.clone();
 
     assert_eq!(new_g, g);
+}
+
+#[test]
+fn test_dfs() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5, 6, 7);
+
+    g.add_edge(&1, &2, None);
+    g.add_edge(&2, &3, None);
+    g.add_edge(&3, &1, None);
+
+    g.add_edge(&4, &5, None);
+    g.add_edge(&4, &6, None);
+    g.add_edge(&6, &7, None);
+
+    let res = g.dfs(&1);
+
+    assert!(res.is_ok());
+    let res = res.unwrap();
+    let expected: BTreeSet<&i32> = vec![&1, &2, &3].into_iter().collect(); 
+
+    assert_eq!(res.len(), 3);
+    assert_eq!(res, expected);
+
+    let res = g.dfs(&4);
+    assert!(res.is_ok());
+    
+    let res = res.unwrap();
+    let expected: BTreeSet<&i32> = vec![&4, &5, &6, &7].into_iter().collect();
+
+    assert_eq!(res, expected);
+
+    let res = g.dfs(&0);
+    assert!(res.is_err());
+
+
 }
