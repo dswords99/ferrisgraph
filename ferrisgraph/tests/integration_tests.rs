@@ -170,3 +170,25 @@ fn test_degree() {
     assert_eq!(g.degree(&1), 3);
     assert_eq!(g.degree(&4), 1);
 }
+
+#[test]
+fn test_bfs() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    g.add_edge(&1, &2, None);
+    g.add_edge(&1, &3, None);
+    g.add_edge(&2, &5, None);
+    g.add_edge(&5, &5, None);
+
+    let res = g.bfs(&1);
+    assert!(res.is_ok());
+
+    let pred = res.unwrap();
+    assert_eq!(pred.len(), 4);
+    assert_eq!(**pred.get(&1).unwrap(), 1);
+    assert_eq!(**pred.get(&2).unwrap(), 1);
+    assert_eq!(**pred.get(&3).unwrap(), 1);
+    assert_eq!(**pred.get(&5).unwrap(), 2);
+
+
+}

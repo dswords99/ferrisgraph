@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::rc::Rc;
@@ -476,5 +476,69 @@ where
     /// ```
     pub fn degree(&self, node: &N) -> usize {
         self.in_degree(node) + self.out_degree(node)
+    }
+
+
+    /// This function performs Breadth First Search on the graph, starting from the given source node.
+    /// The function returns the predecessors in the form `HashMap<&N, &N>`, where a given N will map
+    /// to its predecessor node. A `GraphError::NodeNotFound` will be returned if the source node
+    /// does not exist in the map.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Berlin", "Paris", "London", "Milan", "Zurich");
+    /// g.add_edge(&"Berlin", &"Paris", None);
+    /// g.add_edge(&"Berlin", &"Zurich", None);
+    /// g.add_edge(&"Paris", &"London", None);
+    /// 
+    /// let res = g.bfs(&"Berlin");
+    /// assert!(res.is_ok());
+    /// 
+    /// let predecessor = res.unwrap();
+    /// assert_eq!(predecessor.len(), 4);
+    /// assert_eq!(**predecessor.get(&"Berlin").unwrap(), "Berlin");
+    /// assert_eq!(**predecessor.get(&"Paris").unwrap(), "Berlin");
+    /// assert_eq!(**predecessor.get(&"Zurich").unwrap(), "Berlin");
+    /// assert_eq!(**predecessor.get(&"London").unwrap(), "Paris");
+    /// 
+    /// 
+    /// ```
+    pub fn bfs<'a>(&'a self, src: &'a N) -> Result<HashMap<&'a N, &'a N>, GraphError<'a, N>> {
+
+        let mut q = VecDeque::new();
+        let mut pred = HashMap::new();
+
+        let src_rc = match self.nodes.get(src) {
+            Some(rc) => rc,
+            None => return Err(GraphError::NodeNotFound(src)),
+        };
+
+        pred.insert(&**src_rc, &**src_rc);
+        
+        q.push_back(&**src_rc);
+
+        loop {
+            let curr = match q.pop_front() {
+                Some(n) => n,
+                None => break,
+            };
+
+            let curr_edges = match self.edges.get(curr) {
+                Some(set) => set,
+                None => return Err(GraphError::NodeNotFound(&curr)),
+            };
+
+            for (dst, _) in curr_edges.iter() {
+                if pred.get(&**dst).is_none() {
+                    pred.insert(dst, curr);
+                    q.push_back(dst);
+                }
+            }
+        }
+
+        Ok(pred)
     }
 }
