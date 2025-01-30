@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::rc::Rc;
@@ -10,29 +10,32 @@ mod macros;
 /// The data structure can be used as unweighted by making all weights None, or can be used
 /// as a mixed graph with both weighted and unweighted edges.
 ///
-/// It is required that the node type implements Hash, Eq.
+/// It is required that the node type implements Hash, Eq, Ord and Debug.
+/// It is required that the edge type implements Hash, Eq, Ord and Debug.
+
+#[derive(PartialEq, Debug)]
 pub struct Graph<N, E>
 where
-    N: Hash + Eq,
-    E: Hash + Eq,
+    N: Hash + Eq + Ord + Debug,
+    E: Hash + Eq + Ord,
 {
-    nodes: HashSet<Rc<N>>,
-    edges: HashMap<Rc<N>, HashSet<(Rc<N>, Option<E>)>>,
+    nodes: BTreeSet<Rc<N>>,
+    edges: BTreeMap<Rc<N>, BTreeSet<(Rc<N>, Option<E>)>>,
 }
 
 #[derive(Debug, Error, PartialEq)]
 pub enum GraphError<'a, N>
 where
-    N: Debug
+    N: Debug,
 {
     #[error("Node {:?} does not exist.", _0)]
-    NodeNotFound(&'a N)
+    NodeNotFound(&'a N),
 }
 
 impl<N, E> Graph<N, E>
 where
-    N: Hash + Eq + Debug,
-    E: Hash + Eq,
+    N: Hash + Eq + Debug + Ord,
+    E: Hash + Eq + Ord,
 {
     /// Creates an empty `Graph`.
     ///
@@ -44,8 +47,8 @@ where
     /// ```
     pub fn new() -> Self {
         Graph {
-            nodes: HashSet::new(),
-            edges: HashMap::new(),
+            nodes: BTreeSet::new(),
+            edges: BTreeMap::new(),
         }
     }
 
@@ -85,7 +88,7 @@ where
         let new_node = Rc::new(node);
 
         self.nodes.insert(Rc::clone(&new_node));
-        self.edges.insert(Rc::clone(&new_node), HashSet::new());
+        self.edges.insert(Rc::clone(&new_node), BTreeSet::new());
         true
     }
 
@@ -104,7 +107,7 @@ where
     /// assert_eq!(nodes.contains(&42), false);
     ///
     /// ```
-    pub fn nodes(&self) -> &HashSet<Rc<N>> {
+    pub fn nodes(&self) -> &BTreeSet<Rc<N>> {
         &(self.nodes)
     }
 
@@ -384,29 +387,26 @@ where
     /// assert_eq!(g.num_edges(), 1);
     /// ```
     pub fn num_edges(&self) -> usize {
-        self.edges
-            .iter()
-            .map(|(_, set)| set.len())
-            .sum()
+        self.edges.iter().map(|(_, set)| set.len()).sum()
     }
 
     /// This function returns the out-degree of the given node. That is, the number of outgoing edges.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Johannesburg", "Cape Town", "Durban");
-    /// 
+    ///
     /// assert_eq!(g.out_degree(&"Johannesburg"), 0);
-    /// 
+    ///
     /// g.add_edge(&"Johannesburg", &"Cape Town", None);
     /// assert_eq!(g.out_degree(&"Johannesburg"), 1);
-    /// 
+    ///
     /// g.add_edge(&"Johannesburg", &"Durban", Some(100));
     /// assert_eq!(g.out_degree(&"Johannesburg"), 2);
-    /// 
+    ///
     /// g.add_edge(&"Cape Town", &"Johannesburg", Some(1000));
     /// assert_eq!(g.out_degree(&"Johannesburg"), 2);
     /// ```
@@ -420,22 +420,22 @@ where
     }
 
     /// This function returns the in-degree of the given node. That is, the number of incoming edges.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Rio de Janeiro", "Sao Paulo", "Brasilia");
-    /// 
+    ///
     /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 0);
-    /// 
+    ///
     /// g.add_edge(&"Rio de Janeiro", &"Sao Paulo", None);
     /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 0);
-    /// 
+    ///
     /// g.add_edge(&"Brasilia", &"Rio de Janeiro", Some(100));
     /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 1);
-    /// 
+    ///
     /// g.add_edge(&"Sao Paulo", &"Rio de Janeiro", Some(1000));
     /// assert_eq!(g.in_degree(&"Rio de Janeiro"), 2);
     /// ```
@@ -452,24 +452,24 @@ where
     }
 
     /// This function returns the degree of the given node. That is, the number of edges connected to the node, incoming or outgoing.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Toronto", "Vancouver", "Montreal");
-    /// 
+    ///
     /// assert_eq!(g.degree(&"Toronto"), 0);
-    /// 
+    ///
     /// g.add_edge(&"Toronto", &"Vancouver", None);
     /// assert_eq!(g.degree(&"Toronto"), 1);
-    /// 
+    ///
     /// g.add_edge(&"Montreal", &"Toronto", Some(100));
     /// assert_eq!(g.degree(&"Toronto"), 2);
-    /// 
+    ///
     /// g.add_edge(&"Vancouver", &"Toronto", Some(1000));
-    /// 
+    ///
     /// assert_eq!(g.degree(&"Toronto"), 3);
     /// assert_eq!(g.degree(&"Vancouver"), 2);
     /// assert_eq!(g.degree(&"Montreal"), 1);
@@ -478,14 +478,13 @@ where
         self.in_degree(node) + self.out_degree(node)
     }
 
-
     /// This function performs Breadth First Search on the graph, starting from the given source node.
     /// The function returns the predecessors in the form `HashMap<&N, &N>`, where a given N will map
     /// to its predecessor node. A `GraphError::NodeNotFound` will be returned if the source node
     /// does not exist in the map.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
@@ -493,21 +492,20 @@ where
     /// g.add_edge(&"Berlin", &"Paris", None);
     /// g.add_edge(&"Berlin", &"Zurich", None);
     /// g.add_edge(&"Paris", &"London", None);
-    /// 
+    ///
     /// let res = g.bfs(&"Berlin");
     /// assert!(res.is_ok());
-    /// 
+    ///
     /// let predecessor = res.unwrap();
     /// assert_eq!(predecessor.len(), 4);
     /// assert_eq!(**predecessor.get(&"Berlin").unwrap(), "Berlin");
     /// assert_eq!(**predecessor.get(&"Paris").unwrap(), "Berlin");
     /// assert_eq!(**predecessor.get(&"Zurich").unwrap(), "Berlin");
     /// assert_eq!(**predecessor.get(&"London").unwrap(), "Paris");
-    /// 
-    /// 
+    ///
+    ///
     /// ```
     pub fn bfs<'a>(&'a self, src: &'a N) -> Result<HashMap<&'a N, &'a N>, GraphError<'a, N>> {
-
         let mut q = VecDeque::new();
         let mut pred = HashMap::new();
 
@@ -517,7 +515,7 @@ where
         };
 
         pred.insert(&**src_rc, &**src_rc);
-        
+
         q.push_back(&**src_rc);
 
         loop {
@@ -541,4 +539,35 @@ where
 
         Ok(pred)
     }
+}
+
+impl<N, E> Graph<N, E>
+where
+    N: Hash + Eq + Ord + Debug + Clone,
+    E: Hash + Eq + Ord + Clone,
+{
+    /// This function clones a graph. It is required that the node and edge types are clone.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Riyadh", "Jeddah", "Mecca");
+    /// g.add_edge(&"Riyadh", &"Jeddah", None);
+    /// 
+    /// let mut new_g: Graph<&str, i32> = graph_with_nodes!("Foo");
+    /// assert_ne!(new_g, g);
+    /// 
+    /// new_g = g.clone();
+    /// assert_eq!(new_g, g);
+    /// 
+    /// ```
+    pub fn clone(&self) -> Self {
+        Graph {
+            nodes: self.nodes.clone(),
+            edges: self.edges.clone(),
+        }
+    }
+
 }

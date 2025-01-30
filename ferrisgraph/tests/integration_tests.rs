@@ -189,6 +189,88 @@ fn test_bfs() {
     assert_eq!(**pred.get(&2).unwrap(), 1);
     assert_eq!(**pred.get(&3).unwrap(), 1);
     assert_eq!(**pred.get(&5).unwrap(), 2);
+}
 
+#[test]
+fn test_complex_bfs() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
+    g.add_edge(&0, &1, None);
+    g.add_edge(&1, &0, None);
+
+    g.add_edge(&0, &2, None);
+    g.add_edge(&2, &0, None);
+
+    g.add_edge(&0, &5, None);
+    g.add_edge(&5, &0, None);
+
+    g.add_edge(&2, &3, None);
+    g.add_edge(&3, &2, None);
+
+    g.add_edge(&1, &5, None);
+    g.add_edge(&5, &1, None);
+
+    g.add_edge(&3, &5, None);
+    g.add_edge(&5, &3, None);
+
+    g.add_edge(&4, &5, None);
+    g.add_edge(&5, &4, None);
+
+    g.add_edge(&3, &4, None);
+    g.add_edge(&4, &3, None);
+
+    g.add_edge(&6, &5, None);
+    g.add_edge(&5, &6, None);
+
+    g.add_edge(&5, &7, None);
+    g.add_edge(&7, &5, None);
+
+    g.add_edge(&4, &7, None);
+    g.add_edge(&7, &4, None);
+
+    g.add_edge(&4, &8, None);
+    g.add_edge(&8, &4, None);
+
+    g.add_edge(&8, &7, None);
+    g.add_edge(&7, &8, None);
+
+    g.add_edge(&9, &7, None);
+    g.add_edge(&7, &9, None);
+
+    g.add_edge(&9, &8, None);
+    g.add_edge(&8, &9, None);
+
+    let res = g.bfs(&0);
+
+    assert!(res.is_ok());
+
+    let pred = res.unwrap();
+
+    assert_eq!(pred.len(), 10);
+
+    assert_eq!(**pred.get(&0).unwrap(), 0);
+    assert_eq!(**pred.get(&1).unwrap(), 0);
+    assert_eq!(**pred.get(&2).unwrap(), 0);
+    assert_eq!(**pred.get(&3).unwrap(), 2);
+    assert_eq!(**pred.get(&4).unwrap(), 5);
+    assert_eq!(**pred.get(&5).unwrap(), 0);
+    assert_eq!(**pred.get(&6).unwrap(), 5);
+    assert_eq!(**pred.get(&7).unwrap(), 5);
+    assert_eq!(**pred.get(&8).unwrap(), 4);
+    assert_eq!(**pred.get(&9).unwrap(), 7);
+}
+
+#[test]
+fn test_clone() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(1, 2, 3, 4, 5);
+
+    g.add_edge(&1, &2, None);
+
+    let mut new_g: Graph<i32, i32> = graph_with_nodes!(0, -1, -2, -3);
+
+    assert_ne!(g, new_g);
+
+    new_g = g.clone();
+
+    assert_eq!(new_g, g);
 }
