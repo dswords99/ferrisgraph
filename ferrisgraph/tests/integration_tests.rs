@@ -293,14 +293,14 @@ fn test_dfs() {
 
     assert!(res.is_ok());
     let res = res.unwrap();
-    let expected: BTreeSet<&i32> = vec![&1, &2, &3].into_iter().collect(); 
+    let expected: BTreeSet<&i32> = vec![&1, &2, &3].into_iter().collect();
 
     assert_eq!(res.len(), 3);
     assert_eq!(res, expected);
 
     let res = g.dfs(&4);
     assert!(res.is_ok());
-    
+
     let res = res.unwrap();
     let expected: BTreeSet<&i32> = vec![&4, &5, &6, &7].into_iter().collect();
 
@@ -308,6 +308,43 @@ fn test_dfs() {
 
     let res = g.dfs(&0);
     assert!(res.is_err());
+}
 
+#[test]
+fn test_djikstra() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(0, 1, 2, 3, 4, 5);
 
+    g.add_undirected_edge(&0, &1, Some(14));
+    g.add_undirected_edge(&0, &2, Some(9));
+    g.add_undirected_edge(&0, &3, Some(7));
+
+    g.add_undirected_edge(&1, &4, Some(5));
+
+    g.add_undirected_edge(&2, &1, Some(4));
+    g.add_undirected_edge(&2, &5, Some(3));
+    g.add_undirected_edge(&2, &3, Some(10));
+
+    g.add_undirected_edge(&3, &5, Some(15));
+
+    g.add_undirected_edge(&4, &5, Some(8));
+
+    let res = g.djikstra(&0, 1, 0);
+
+    assert!(res.is_ok());
+
+    let (dist, pred) = res.unwrap();
+
+    // assert_eq!(*dist.get(&0).unwrap(), 0);
+    assert_eq!(*dist.get(&1).unwrap(), 13);
+    assert_eq!(*dist.get(&2).unwrap(), 9);
+    assert_eq!(*dist.get(&3).unwrap(), 7);
+    assert_eq!(*dist.get(&4).unwrap(), 18);
+    assert_eq!(*dist.get(&5).unwrap(), 12);
+
+    assert_eq!(*pred.get(&0).unwrap(), None);
+    assert_eq!(*pred.get(&1).unwrap(), Some(&2));
+    assert_eq!(*pred.get(&2).unwrap(), Some(&0));
+    assert_eq!(*pred.get(&3).unwrap(), Some(&0));
+    assert_eq!(*pred.get(&4).unwrap(), Some(&1));
+    assert_eq!(*pred.get(&5).unwrap(), Some(&2));
 }

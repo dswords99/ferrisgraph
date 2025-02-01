@@ -1,6 +1,8 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
+use std::cmp::Reverse;
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 use std::fmt::Debug;
 use std::hash::Hash;
+use std::ops::Add;
 use std::rc::Rc;
 use thiserror::Error;
 
@@ -480,7 +482,7 @@ where
 
     /// This function performs Breadth First Search on the graph, starting from the given source node.
     /// The function returns the predecessors in the form `HashMap<&N, &N>`, where a given N will map
-    /// to its predecessor node. A `GraphError::NodeNotFound` will be returned if the source node
+    /// to its predecessor node. A `GraphError::NodeNotFound` error will be returned if the source node
     /// does not exist in the map.
     ///
     /// # Examples
@@ -543,10 +545,10 @@ where
     /// This function performs Depth First Search on the graph from the specified source.
     /// A visited set is returned on success, whereas a `GraphError::NodeNotFound` is returned
     /// if the source doesn't exist.
-    /// 
+    ///
     /// This function can be used for things such as finding 'islands' or if there exists a path
     /// between two nodes.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use ferrisgraph::*;
@@ -562,12 +564,12 @@ where
     ///
     /// let visited = res.unwrap();
     /// let expected: BTreeSet<&&str> = vec![&"Berlin", &"Paris", &"Zurich", &"London"].into_iter().collect();
-    /// 
+    ///
     /// assert_eq!(visited.len(), 4);
     /// assert_eq!(visited, expected);
-    /// 
+    ///
     /// ```
-    /// 
+    ///
     pub fn dfs<'a>(&'a self, src: &'a N) -> Result<BTreeSet<&'a N>, GraphError<'a, N>> {
         let mut stack = Vec::new();
         let mut visited = BTreeSet::new();
@@ -595,7 +597,6 @@ where
         }
 
         Ok(visited)
-        
     }
 }
 
@@ -605,21 +606,21 @@ where
     E: Hash + Eq + Ord + Clone,
 {
     /// This function clones a graph. It is required that the node and edge types are clone.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ferrisgraph::*;
     ///
     /// let mut g: Graph<&str, i32> = graph_with_nodes!("Riyadh", "Jeddah", "Mecca");
     /// g.add_edge(&"Riyadh", &"Jeddah", None);
-    /// 
+    ///
     /// let mut new_g: Graph<&str, i32> = graph_with_nodes!("Foo");
     /// assert_ne!(new_g, g);
-    /// 
+    ///
     /// new_g = g.clone();
     /// assert_eq!(new_g, g);
-    /// 
+    ///
     /// ```
     pub fn clone(&self) -> Self {
         Graph {
@@ -628,4 +629,90 @@ where
         }
     }
 
+    pub fn add_undirected_edge(&mut self, src: &N, dst: &N, weight: Option<E>) -> bool {
+        if self.is_edge(src, dst, &weight) || self.is_edge(dst, src, &weight) {
+            return false;
+        }
+
+        self.add_edge(src, dst, weight.clone()) && self.add_edge(src, dst, weight)
+    }
+}
+
+impl<N, E> Graph<N, E>
+where
+    N: Hash + Eq + Ord + Debug,
+    E: Hash + Eq + Ord + Add<Output = E> + Clone,
+{
+    /// This function performs Djikstra's algorithm on the graph, beginning from the source node.
+    /// The parameter `default_weight` is the weight that will be used for unweighted edges,
+    /// and `zero` is the distance value for the source.
+    ///
+    /// The function returns a tuple `(dist, pred)`, in which `dist` is of type `HashMap<&N, E>`, mapping
+    /// nodes to their total distances from the source. `pred` is of type `HashMap<&N, Option<&N>>`, mapping
+    /// nodes to their predecessors, where the predecessor to the source is `None`.
+    /// `GraphError::NodeNotFound` is returned if the src node doesn't exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ferrisgraph::*;
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Sydney", "Melbourne", "Perth");
+    ///
+    /// g.add_undirected_edge(&"Sydney", &"Melbourne", Some(7));
+    /// g.add_undirected_edge(&"Melbourne", &"Perth", Some(5));
+    /// g.add_undirected_edge(&"Sydney", &"Perth", Some(15));
+    ///
+    /// let res = g.djikstra(&"Sydney", 1, 0).unwrap();
+    ///
+    /// let (dist, pred) = res;
+    ///
+    /// assert_eq!(*dist.get(&"Melbourne").unwrap(), 7);
+    /// assert_eq!(*dist.get(&"Perth").unwrap(), 12);
+    ///
+    /// assert_eq!(*pred.get(&"Sydney").unwrap(), None);
+    /// assert_eq!(*pred.get(&"Melbourne").unwrap(), Some(&"Sydney"));
+    /// assert_eq!(*pred.get(&"Perth").unwrap(), Some(&"Melbourne"));
+    ///
+    /// ```
+    pub fn djikstra<'a>(
+        &'a self,
+        src: &'a N,
+        default_weight: E,
+        zero: E,
+    ) -> Result<(HashMap<&'a N, E>, HashMap<&'a N, Option<&'a N>>), GraphError<'a, N>> {
+        let mut dist: HashMap<&N, E> = HashMap::new();
+        let mut pred: HashMap<&N, Option<&N>> = HashMap::new();
+
+        let mut pq = std::collections::BinaryHeap::new();
+        pred.insert(src, None);
+        pq.push((Reverse(zero), src));
+
+        while let Some((Reverse(curr_dist), u)) = pq.pop() {
+            if dist.get(u).is_some() && *dist.get(u).unwrap() < curr_dist {
+                continue;
+            }
+
+            let u_edges = match self.edges.get(u) {
+                Some(set) => set,
+                None => return Err(GraphError::NodeNotFound(u)),
+            };
+
+            for (n, e) in u_edges {
+                let weight = match e {
+                    Some(x) => x.clone(),
+                    None => default_weight.clone(),
+                };
+
+                let new_dist = weight + curr_dist.clone();
+
+                if dist.get(&**n).is_none() || new_dist < *dist.get(&**n).unwrap() {
+                    dist.insert(n, new_dist.clone());
+                    pred.insert(n, Some(u));
+                    pq.push((Reverse(new_dist), n))
+                }
+            }
+        }
+
+        Ok((dist, pred))
+    }
 }
