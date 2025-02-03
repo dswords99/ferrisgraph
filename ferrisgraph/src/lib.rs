@@ -300,21 +300,21 @@ where
     /// assert_eq!(g.edges(&"Shanghai"), None);
     ///
     /// ```
-    pub fn edges(&self, node: &N) -> Option<Vec<(&N, &Option<E>)>> {
+    pub fn edges<'a>(&self, node: &'a N) -> Result<Option<Vec<(&N, &Option<E>)>>, GraphError<'a, N>> {
         let node_edges = match self.edges.get(node) {
             Some(set) => set,
-            None => return None,
+            None => return Err(GraphError::NodeNotFound(node)),
         };
 
         if node_edges.is_empty() {
-            return None;
+            return Ok(None);
         };
 
         let mut vec = Vec::new();
 
         node_edges.iter().for_each(|(n, e)| vec.push((&(**n), e)));
 
-        Some(vec)
+        Ok(Some(vec))
     }
 
     /// Returns an optional `Vec<&N>` containing all the outgoing connections from the given node.
@@ -334,21 +334,21 @@ where
     ///
     /// assert_eq!(expected, cons);
     /// ```
-    pub fn connections(&self, node: &N) -> Option<Vec<&N>> {
+    pub fn connections<'a>(&self, node: &'a N) -> Result<Option<Vec<&N>>, GraphError<'a, N>> {
         let node_edges = match self.edges.get(node) {
             Some(set) => set,
-            None => return None,
+            None => return Err(GraphError::NodeNotFound(node)),
         };
 
         if node_edges.is_empty() {
-            return None;
+            return Ok(None);
         };
 
         let mut vec = Vec::new();
 
         node_edges.iter().for_each(|(n, _)| vec.push(&(**n)));
 
-        Some(vec)
+        Ok(Some(vec))
     }
 
     /// Returns `true` if an edge exists between the source and destination, and `false` if not.

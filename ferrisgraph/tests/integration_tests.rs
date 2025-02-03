@@ -91,12 +91,19 @@ fn test_edges() {
     g.add_edge(&1, &5, Some(1001));
 
     let expect = vec![(&2, &None), (&3, &Some(100)), (&5, &Some(1001))];
-    let mut cons = g.edges(&1).expect("We know that this node exists.");
+    let cons = g.edges(&1);
+
+    assert!(cons.is_ok());
+    let cons = cons.unwrap();
+    assert!(cons.is_some());
+    let mut cons = cons.unwrap();
 
     // Order doesn't matter
     cons.sort();
 
     assert_eq!(expect, cons);
+
+    assert!(g.edges(&6).is_err());
 }
 
 #[test]
@@ -128,12 +135,19 @@ fn test_connections() {
     g.add_edge(&4, &1, None);
 
     let expect = vec![&2, &3, &5];
-    let mut cons = g.connections(&1).expect("We know that this node exists.");
+    let cons = g.connections(&1);
+
+    assert!(cons.is_ok());
+    let cons = cons.unwrap();
+    assert!(cons.is_some());
+    let mut cons = cons.unwrap();
 
     // Order doesn't matter
     cons.sort();
 
     assert_eq!(expect, cons);
+
+    assert!(g.connections(&6).is_err());
 }
 
 #[test]
