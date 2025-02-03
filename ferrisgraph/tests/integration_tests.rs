@@ -334,7 +334,7 @@ fn test_djikstra() {
 
     let (dist, pred) = res.unwrap();
 
-    // assert_eq!(*dist.get(&0).unwrap(), 0);
+    assert_eq!(*dist.get(&0).unwrap(), 0);
     assert_eq!(*dist.get(&1).unwrap(), 13);
     assert_eq!(*dist.get(&2).unwrap(), 9);
     assert_eq!(*dist.get(&3).unwrap(), 7);

@@ -1,5 +1,5 @@
 use std::cmp::Reverse;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::Add;
@@ -629,12 +629,31 @@ where
         }
     }
 
+    /// This function adds an undirected edge, i.e. it automatically adds two directed edges going either way between two nodes.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Lagos", "Abuja", "Kano");
+    /// 
+    /// assert!(g.add_undirected_edge(&"Lagos", &"Kano", None));
+    /// assert_eq!(g.add_undirected_edge(&"Lagos", &"Kano", None), false);
+    /// 
+    /// assert!(g.is_edge(&"Lagos", &"Kano", &None));
+    /// assert!(g.is_edge(&"Kano", &"Lagos", &None));
+    /// ```
     pub fn add_undirected_edge(&mut self, src: &N, dst: &N, weight: Option<E>) -> bool {
-        if self.is_edge(src, dst, &weight) || self.is_edge(dst, src, &weight) {
+        if src == dst {
             return false;
         }
 
-        self.add_edge(src, dst, weight.clone()) && self.add_edge(src, dst, weight)
+        if self.is_edge(src, dst, &weight) || self.is_edge(dst, src, &weight) {
+            return false
+        }
+
+        self.add_edge(src, dst, weight.clone()) && self.add_edge(dst, src, weight)
     }
 }
 
@@ -685,6 +704,7 @@ where
 
         let mut pq = std::collections::BinaryHeap::new();
         pred.insert(src, None);
+        dist.insert(src, zero.clone());
         pq.push((Reverse(zero), src));
 
         while let Some((Reverse(curr_dist), u)) = pq.pop() {
