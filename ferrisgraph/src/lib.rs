@@ -630,6 +630,7 @@ where
     }
 
     /// This function adds an undirected edge, i.e. it automatically adds two directed edges going either way between two nodes.
+    /// Returns true if successful, and returns false if either of the edges already exist, or if src and dst are the same (loop).
     /// 
     /// # Examples
     /// 
