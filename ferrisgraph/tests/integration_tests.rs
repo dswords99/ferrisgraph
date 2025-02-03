@@ -362,3 +362,35 @@ fn test_djikstra() {
     assert_eq!(*pred.get(&4).unwrap(), Some(&1));
     assert_eq!(*pred.get(&5).unwrap(), Some(&2));
 }
+
+#[test]
+fn test_has_cycle() {
+    let mut g: Graph<i32, i32> = graph_with_nodes!(0, 1, 2, 3, 4, 5);
+
+    g.add_edge(&0, &1, None);
+    g.add_edge(&0, &2, None);
+
+    assert!(!g.has_cycle());
+    
+    g.add_edge(&1, &2, None);
+
+    assert!(!g.has_cycle());
+
+    g.add_edge(&2, &0, None);
+
+    assert!(g.has_cycle());
+
+    let mut g: Graph<i32, i32> = graph_with_nodes!(0, 1, 2, 3, 4, 5);
+
+    g.add_edge(&0, &1, None);
+    g.add_edge(&0, &2, None);
+
+    g.add_edge(&3, &4, None);
+    g.add_edge(&4, &5, None);
+
+    assert!(!g.has_cycle());
+
+    g.add_edge(&5, &3, None);
+
+    assert!(g.has_cycle());
+}

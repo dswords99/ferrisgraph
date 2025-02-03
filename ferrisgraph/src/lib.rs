@@ -293,11 +293,20 @@ where
     /// g.add_edge(&"Beijing", &"Guangzhou", Some(200));
     ///
     /// let expected = vec![(&"Guangzhou", &Some(200)), (&"Shanghai", &Some(100))];
-    /// let mut cons = g.edges(&"Beijing").expect("We know that Beijing has connections.");
+    /// let cons = g.edges(&"Beijing");
+    /// 
+    /// assert!(cons.is_ok());
+    /// 
+    /// let cons = cons.unwrap();
+    /// 
+    /// assert!(cons.is_some());
+    /// 
+    /// let mut cons = cons.unwrap();
+    /// 
     /// cons.sort();
     ///
     /// assert_eq!(expected, cons);
-    /// assert_eq!(g.edges(&"Shanghai"), None);
+    /// assert_eq!(g.edges(&"Shanghai"), Ok(None));
     ///
     /// ```
     pub fn edges<'a>(&self, node: &'a N) -> Result<Option<Vec<(&N, &Option<E>)>>, GraphError<'a, N>> {
@@ -330,7 +339,13 @@ where
     /// g.add_edge(&"Manchester", &"London", Some(100));
     ///
     /// let expected = vec![&"Glasgow"];
-    /// let cons = g.connections(&"London").expect("We know that London has a connection.");
+    /// let cons = g.connections(&"London");
+    /// 
+    /// assert!(cons.is_ok());
+    /// let cons = cons.unwrap();
+    ///
+    /// assert!(cons.is_some());
+    /// let cons = cons.unwrap(); 
     ///
     /// assert_eq!(expected, cons);
     /// ```
@@ -597,6 +612,67 @@ where
         }
 
         Ok(visited)
+    }
+
+
+    /// This function returns true if the graph contains a cycle, and false if not.
+    /// A cycle is a path in a graph that starts and ends at the same vertex.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ferrisgraph::*;
+    ///
+    /// let mut g: Graph<&str, i32> = graph_with_nodes!("Mexico City", "Tijuana", "Monterrey");
+    /// 
+    /// g.add_edge(&"Mexico City", &"Tijuana", None);
+    /// g.add_edge(&"Tijuana", &"Monterrey", None);
+    /// 
+    /// assert!(!g.has_cycle());
+    /// 
+    /// g.add_edge(&"Monterrey", &"Mexico City", None);
+    /// 
+    /// assert!(g.has_cycle());
+    /// ```
+    pub fn has_cycle(&self) -> bool {
+        let mut visited = BTreeSet::new();
+        let mut stack = BTreeSet::new();
+
+        for node in self.nodes.iter() {
+            if !visited.contains(node) {                
+
+                if self.explore_for_cycle(node, &mut visited, &mut stack) {
+                    return true;
+                }
+
+            }
+        }
+
+        false
+    }
+
+    fn explore_for_cycle(&self, node: &Rc<N>, visited: &mut BTreeSet<Rc<N>>, stack: &mut BTreeSet<Rc<N>>) -> bool {
+        if stack.contains(node) {
+            return true;
+        }
+
+        if visited.contains(node) {
+            return false;
+        }
+
+        let edges = self.edges.get(node).expect("There is no way that this isn't a node");
+        visited.insert(node.clone());
+        stack.insert(node.clone());
+
+        for (dst, _) in edges.iter() {
+            if self.explore_for_cycle(dst, visited, stack) {
+                return true;
+            }
+        }
+
+        stack.remove(node);
+
+        false
     }
 }
 
