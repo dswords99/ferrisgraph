@@ -2,6 +2,8 @@
 name = "ferrisgraph"
 version = "0.1.0"
 edition = "2021"
+description = "A weighted, directed multigraph implementation"
+license = "MIT"
 
 [dependencies]
 thiserror = "2.0.11"
