@@ -19,6 +19,10 @@ cargo add ferrisgraph
 ```
 
 ## Example
+This example demonstrates the ways in which this crate can be used. In this specific example, we are building a finite automata using `Graph`, and showing how we can process inputs on the data structure. The finite automata will be modelled according to the diagram.
+
+![alt text](image.png)
+
 ```rust
 use ferrisgraph::{graph::Graph, graph_with_nodes};
 
