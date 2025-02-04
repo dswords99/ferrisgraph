@@ -20,7 +20,10 @@ cargo add ferrisgraph
 
 ## Example
 ```rust
-// Building the Finite Automata according to the diagram
+use ferrisgraph::{graph::Graph, graph_with_nodes};
+
+fn main() {
+    // Building the Finite Automata according to the diagram
 
     let mut fa: Graph<&str, Vec<char>> = graph_with_nodes!("q1", "q2", "q3");
 
@@ -64,6 +67,9 @@ cargo add ferrisgraph
 
     // Assert that after processing the input, we are left on the accept state, q2.
     assert_eq!(curr, "q2");
+
+}
+
 ```
 
 ## 📖 Documentation  
