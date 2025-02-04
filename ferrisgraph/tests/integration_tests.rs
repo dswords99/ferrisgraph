@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use ferrisgraph::{graph_with_nodes, Graph};
+use ferrisgraph::{graph::Graph, graph_with_nodes};
 
 #[test]
 fn test_node_insertion_and_contains() {
@@ -371,7 +371,7 @@ fn test_has_cycle() {
     g.add_edge(&0, &2, None);
 
     assert!(!g.has_cycle());
-    
+
     g.add_edge(&1, &2, None);
 
     assert!(!g.has_cycle());
