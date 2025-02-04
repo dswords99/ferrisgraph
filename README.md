@@ -19,8 +19,51 @@ cargo add ferrisgraph
 ```
 
 ## Example
-```
-// Soon
+```rust
+// Building the Finite Automata according to the diagram
+
+    let mut fa: Graph<&str, Vec<char>> = graph_with_nodes!("q1", "q2", "q3");
+
+    fa.add_edge(&"q1", &"q1", Some(vec!['0']));
+    fa.add_edge(&"q1", &"q2", Some(vec!['1']));
+
+    fa.add_edge(&"q2", &"q2", Some(vec!['1']));
+    fa.add_edge(&"q2", &"q3", Some(vec!['0']));
+
+    fa.add_edge(&"q3", &"q2", Some(vec!['0', '1']));
+
+    // Contains at least one 1, and has an even number of 0s after the final 1
+    let input = "010001010000".to_string();
+
+    // Input starts at q1
+    let mut curr = "q1";
+
+    for c in input.chars() {
+        let opt = match fa.edges(&curr) {
+            Ok(x) => x,
+            Err(e) => panic!("{}", e),
+        };
+
+        let edges = match opt {
+            Some(v) => v,
+            None => panic!("There is nowhere to go from this state in the finite automata, but we still have input."),
+        };
+
+        for (dst, w) in edges {
+            let weights = match w {
+                Some(v) => v,
+                None => continue,
+            };
+
+            if weights.contains(&c) {
+                curr = *dst;
+                break;
+            }
+        }
+    }
+
+    // Assert that after processing the input, we are left on the accept state, q2.
+    assert_eq!(curr, "q2");
 ```
 
 ## 📖 Documentation  
