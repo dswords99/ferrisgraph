@@ -19,8 +19,8 @@ cargo add ferrisgraph
 ```
 
 ## Example
-This example demonstrates the ways in which this crate can be used. In this specific example, we are building a finite automata using `Graph`, and showing how we can process inputs on the data structure. The finite automata will be modelled according to the diagram. This specific finite automata can be described as the finite automata recognising $A$, where
-$$A = \{w\ |\ w \text{ contains at least one 1 and an even number of 0s follow the last 1.}\}$$
+This example demonstrates the ways in which this crate can be used. In this specific example, we are building a finite automata using `Graph`, and showing how we can process inputs on the data structure. The finite automata will be modelled according to the diagram. This specific finite automata can be described as the finite automata recognising `A`, where
+`A = { w ∣ w contains at least one 1 and an even number of 0s follow the last 1. }`
 
 ![alt text](image.png)
 
