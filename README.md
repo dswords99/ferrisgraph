@@ -24,8 +24,8 @@ cargo add ferrisgraph
 ```
 
 ## 📖 Documentation  
-Full documentation available at: [Docs](https://docs.rs/ferrisgraph/0.1.0/ferrisgraph/)
-`Graph` struct methods quick-link: [Docs](https://docs.rs/ferrisgraph/0.1.0/ferrisgraph/graph/graph/struct.Graph.html)
+Full documentation available at: [Docs](https://docs.rs/ferrisgraph/0.1.0/ferrisgraph/)  
+`Graph` struct methods quick-link: [Docs](https://docs.rs/ferrisgraph/0.1.0/ferrisgraph/graph/graph/struct.Graph.html)  
 
 Generate local docs with:
 ```sh
