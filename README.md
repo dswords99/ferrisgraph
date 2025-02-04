@@ -4,8 +4,8 @@ A fast and flexible graph library written in Rust. Supports various graph algori
 Doesn't use Cloning or Copying for insertion, deletion and lookup.
 
 ## Features  
-✅ Add and remove nodes & edges
-✅ Functions to access information about specific nodes, edges or the graph
+✅ Add and remove nodes & edges  
+✅ Functions to access information about specific nodes, edges or the graph  
 ✅ Breadth-first search (BFS) & Depth-first search (DFS)  
 ✅ Dijkstra’s shortest path algorithm  
 ✅ Cycle detection  
